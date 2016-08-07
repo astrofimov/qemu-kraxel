@@ -323,6 +323,7 @@ struct VirtIOInputPCI {
 #define TYPE_VIRTIO_KEYBOARD_PCI  "virtio-keyboard-pci"
 #define TYPE_VIRTIO_MOUSE_PCI     "virtio-mouse-pci"
 #define TYPE_VIRTIO_TABLET_PCI    "virtio-tablet-pci"
+#define TYPE_VIRTIO_TOUCH_PCI     "virtio-touch-pci"
 #define VIRTIO_INPUT_HID_PCI(obj) \
         OBJECT_CHECK(VirtIOInputHIDPCI, (obj), TYPE_VIRTIO_INPUT_HID_PCI)
 
