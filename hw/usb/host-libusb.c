@@ -367,6 +367,7 @@ static void LIBUSB_CALL usb_host_req_complete_ctrl(struct libusb_transfer *xfer)
     bool disconnect = (xfer->status == LIBUSB_TRANSFER_NO_DEVICE);
 
     if (r->p == NULL) {
+        fprintf(stderr, "%s: cancel ack (ctrl)\n", __func__);
         goto out; /* request was canceled */
     }
 
@@ -400,6 +401,7 @@ static void LIBUSB_CALL usb_host_req_complete_data(struct libusb_transfer *xfer)
     bool disconnect = (xfer->status == LIBUSB_TRANSFER_NO_DEVICE);
 
     if (r->p == NULL) {
+        fprintf(stderr, "%s: cancel ack (data)\n", __func__);
         goto out; /* request was canceled */
     }
 
@@ -927,8 +929,10 @@ static void usb_host_abort_xfers(USBHostDevice *s)
         struct timeval tv;
         memset(&tv, 0, sizeof(tv));
         tv.tv_usec = 2500;
+        fprintf(stderr, "%s: wait\n", __func__);
         libusb_handle_events_timeout(ctx, &tv);
     }
+    fprintf(stderr, "%s: done\n", __func__);
 }
 
 static int usb_host_close(USBHostDevice *s)
