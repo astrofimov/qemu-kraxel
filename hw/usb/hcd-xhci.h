@@ -224,3 +224,8 @@ struct XHCIState {
 
     bool nec_quirks;
 };
+
+static inline void xhci_set_flag(XHCIState *xhci, enum xhci_flags bit)
+{
+    xhci->flags |= (1 << bit);
+}
