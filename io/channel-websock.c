@@ -169,10 +169,12 @@ qio_channel_websock_extract_headers(char *buffer,
     }
     *tmp = '\0';
 
+#if 0
     if (!g_str_equal(buffer, QIO_CHANNEL_WEBSOCK_HTTP_PATH)) {
         error_setg(errp, "Unexpected HTTP path %s", buffer);
         return 0;
     }
+#endif
 
     buffer = tmp + 1;
 
