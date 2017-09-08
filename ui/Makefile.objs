@@ -12,7 +12,6 @@ common-obj-y += input.o input-keymap.o input-legacy.o
 common-obj-$(CONFIG_LINUX) += input-linux.o
 common-obj-$(CONFIG_SPICE) += spice-core.o spice-input.o spice-display.o
 common-obj-$(CONFIG_SDL) += sdl.mo x_keymap.o
-common-obj-$(CONFIG_SDL) += intel_vgt.o
 common-obj-$(CONFIG_COCOA) += cocoa.o
 common-obj-$(CONFIG_CURSES) += curses.o
 common-obj-$(CONFIG_VNC) += $(vnc-obj-y)
@@ -20,6 +19,8 @@ common-obj-$(CONFIG_GTK) += gtk.o x_keymap.o
 
 ifeq ($(CONFIG_SDLABI),1.2)
 sdl.mo-objs := sdl.o sdl_zoom.o
+sdl.mo-objs += intel_vgt.o
+sdl.mo-libs += -ludev
 endif
 ifeq ($(CONFIG_SDLABI),2.0)
 sdl.mo-objs := sdl2.o sdl2-input.o sdl2-2d.o
@@ -28,7 +29,6 @@ sdl.mo-objs += sdl2-gl.o
 endif
 endif
 sdl.mo-cflags := $(SDL_CFLAGS)
-intel_vgt.o-cflags := $(SDL_CFLAGS)
 
 ifeq ($(CONFIG_OPENGL),y)
 common-obj-y += shader.o

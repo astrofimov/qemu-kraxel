@@ -624,9 +624,11 @@ static bool check_egl(void)
     return ret;
 }
 
-void intel_vgpu_display_init(DisplayState *ds, int full_screen, int no_frame)
+void real_sdl_display_init(DisplayState *ds, int full_screen, int no_frame);
+
+void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
 {
-    sdl_display_init(ds, full_screen, no_frame);
+    real_sdl_display_init(ds, full_screen, no_frame);
     if (!check_egl()) {
         return;
     }
@@ -634,4 +636,8 @@ void intel_vgpu_display_init(DisplayState *ds, int full_screen, int no_frame)
     dcl = g_malloc0(sizeof(DisplayChangeListener));
     dcl->ops = &dcl_ops;
     register_displaychangelistener(dcl);
+}
+
+void sdl_display_early_init(int opengl)
+{
 }

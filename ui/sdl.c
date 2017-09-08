@@ -940,7 +940,8 @@ static const DisplayChangeListenerOps dcl_ops = {
     .dpy_cursor_define    = sdl_mouse_define,
 };
 
-void sdl_display_early_init(int opengl)
+void real_sdl_display_early_init(int opengl);
+void real_sdl_display_early_init(int opengl)
 {
     if (opengl == 1 /* on */) {
         fprintf(stderr,
@@ -950,7 +951,8 @@ void sdl_display_early_init(int opengl)
     }
 }
 
-void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
+void real_sdl_display_init(DisplayState *ds, int full_screen, int no_frame);
+void real_sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
 {
     int flags;
     uint8_t data = 0;
