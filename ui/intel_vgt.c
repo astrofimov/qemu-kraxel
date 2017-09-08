@@ -30,9 +30,8 @@
 #include "ui/console.h"
 #include "hw/xen/xen.h"
 
-#include <GL/gl.h>
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+#include <epoxy/gl.h>
+#include <epoxy/egl.h>
 
 #include <hw/vfio/vfio-common.h>
 #include <sys/ioctl.h>
