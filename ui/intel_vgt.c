@@ -235,7 +235,7 @@ static void create_cursor_buffer(int *x, int *y)
 
     r = oldest_rec(&cursor_list);
     if ((cursor_list.l[r].fd > 0) && (cursor_list.l[r].fd != name)) {
-	printf("close cursor fd:%d/n", cursor_list.l[r].fd);
+	printf("close cursor fd:%d\n", cursor_list.l[r].fd);
         close(cursor_list.l[r].fd);
     }
 
@@ -245,6 +245,7 @@ static void create_cursor_buffer(int *x, int *y)
     cursor_list.l[r].tiled = 0;
     cursor_list.l[r].size = dmabuf.size;
     cursor_list.l[r].fd = dmabuf.fd;
+    printf("new cursor fd:%d\n", cursor_list.l[r].fd);
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -329,6 +330,7 @@ static int create_primary_buffer(void)
     primary_list.l[r].fd = dmabuf.fd;
     fbWidth = dmabuf.width;
     fbHeight = dmabuf.height;
+    printf("new primary fd:%d\n", primary_list.l[r].fd);
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
