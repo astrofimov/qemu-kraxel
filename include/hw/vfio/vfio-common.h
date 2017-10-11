@@ -142,6 +142,16 @@ typedef struct VFIOGroup {
     QLIST_ENTRY(VFIOGroup) container_next;
 } VFIOGroup;
 
+typedef struct VFIODisplay {
+    QemuConsole *con;
+    struct {
+        uint32_t index;
+        uint32_t size;
+        void *mmap;
+        DisplaySurface *surface;
+    } region;
+} VFIODisplay;
+
 void vfio_put_base_device(VFIODevice *vbasedev);
 void vfio_disable_irqindex(VFIODevice *vbasedev, int index);
 void vfio_unmask_single_irqindex(VFIODevice *vbasedev, int index);

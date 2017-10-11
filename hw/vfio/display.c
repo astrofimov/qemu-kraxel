@@ -23,6 +23,7 @@
 static void vfio_display_region_update(void *opaque)
 {
     VFIOPCIDevice *vdev = opaque;
+    VFIODisplay *dpy = vdev->dpy;
     struct vfio_device_gfx_plane_info plane;
     struct vfio_region_info *region = NULL;
     pixman_format_code_t format = PIXMAN_x8r8g8b8;
@@ -42,22 +43,22 @@ static void vfio_display_region_update(void *opaque)
     }
     format = qemu_drm_format_to_pixman(plane.drm_format);
 
-    if (vdev->region_mmap && vdev->region_index != plane.region_index) {
+    if (dpy->region.mmap && dpy->region.index != plane.region_index) {
         /* region changed */
-        munmap(vdev->region_mmap, vdev->region_size);
-        vdev->region_mmap = NULL;
-        vdev->region_surface = NULL;
+        munmap(dpy->region.mmap, dpy->region.size);
+        dpy->region.mmap = NULL;
+        dpy->region.surface = NULL;
     }
 
-    if (vdev->region_surface &&
-        (surface_width(vdev->region_surface) != plane.width ||
-         surface_height(vdev->region_surface) != plane.height ||
-         surface_format(vdev->region_surface) != format)) {
+    if (dpy->region.surface &&
+        (surface_width(dpy->region.surface) != plane.width ||
+         surface_height(dpy->region.surface) != plane.height ||
+         surface_format(dpy->region.surface) != format)) {
         /* size changed */
-        vdev->region_surface = NULL;
+        dpy->region.surface = NULL;
     }
 
-    if (vdev->region_mmap == NULL) {
+    if (dpy->region.mmap == NULL) {
         /* mmap region */
         ret = vfio_get_region_info(&vdev->vbasedev, plane.region_index,
                                    &region);
@@ -66,33 +67,33 @@ static void vfio_display_region_update(void *opaque)
                     __func__, plane.region_index, strerror(-ret));
             return;
         }
-        vdev->region_size = region->size;
-        vdev->region_mmap = mmap(NULL, region->size,
+        dpy->region.size = region->size;
+        dpy->region.mmap = mmap(NULL, region->size,
                                  PROT_READ, MAP_SHARED,
                                  vdev->vbasedev.fd,
                                  region->offset);
-        if (vdev->region_mmap == MAP_FAILED) {
+        if (dpy->region.mmap == MAP_FAILED) {
             fprintf(stderr, "%s: mmap region %d: %s\n", __func__,
                     plane.region_index, strerror(errno));
-            vdev->region_mmap = NULL;
+            dpy->region.mmap = NULL;
             g_free(region);
             return;
         }
         g_free(region);
     }
 
-    if (vdev->region_surface == NULL) {
+    if (dpy->region.surface == NULL) {
         /* create surface */
-        vdev->region_surface = qemu_create_displaysurface_from
+        dpy->region.surface = qemu_create_displaysurface_from
             (plane.width, plane.height, format,
-             plane.stride, vdev->region_mmap);
-        dpy_gfx_replace_surface(vdev->display_con, vdev->region_surface);
+             plane.stride, dpy->region.mmap);
+        dpy_gfx_replace_surface(dpy->con, dpy->region.surface);
     }
 
     /* full screen update */
-    dpy_gfx_update(vdev->display_con, 0, 0,
-                   surface_width(vdev->region_surface),
-                   surface_height(vdev->region_surface));
+    dpy_gfx_update(dpy->con, 0, 0,
+                   surface_width(dpy->region.surface),
+                   surface_height(dpy->region.surface));
 
 }
 
@@ -102,9 +103,10 @@ static const GraphicHwOps vfio_display_region_ops = {
 
 static int vfio_display_region_init(VFIOPCIDevice *vdev, Error **errp)
 {
-    vdev->display_con = graphic_console_init(DEVICE(vdev), 0,
-                                             &vfio_display_region_ops,
-                                             vdev);
+    vdev->dpy = g_new0(VFIODisplay, 1);
+    vdev->dpy->con = graphic_console_init(DEVICE(vdev), 0,
+                                          &vfio_display_region_ops,
+                                          vdev);
     /* TODO: disable hotplug (there is no graphic_console_close) */
     return 0;
 }
