@@ -41,6 +41,11 @@ int vfio_display_probe(VFIOPCIDevice *vdev, Error **errp)
         return -1;
     }
 
+    if (vdev->display == ON_OFF_AUTO_AUTO) {
+        /* not an error in automatic mode */
+        return 0;
+    }
+
     error_setg(errp, "vfio: device doesn't support any (known) display method");
     return -1;
 }
