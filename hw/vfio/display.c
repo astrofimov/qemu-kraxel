@@ -24,14 +24,14 @@ static void vfio_display_region_update(void *opaque)
 {
     VFIOPCIDevice *vdev = opaque;
     VFIODisplay *dpy = vdev->dpy;
-    struct vfio_device_gfx_plane_info plane;
+    struct vfio_device_gfx_plane_info plane = {
+        .argsz = sizeof(plane),
+        .flags = VFIO_GFX_PLANE_TYPE_REGION
+    };
     struct vfio_region_info *region = NULL;
     pixman_format_code_t format = PIXMAN_x8r8g8b8;
     int ret;
 
-    memset(&plane, 0, sizeof(plane));
-    plane.argsz = sizeof(plane);
-    plane.flags = VFIO_GFX_PLANE_TYPE_REGION;
     ret = ioctl(vdev->vbasedev.fd, VFIO_DEVICE_QUERY_GFX_PLANE, &plane);
     if (ret < 0) {
         fprintf(stderr, "ioctl VFIO_DEVICE_QUERY_GFX_PLANE: %s\n",
