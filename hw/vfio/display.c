@@ -28,7 +28,6 @@ static void vfio_display_region_update(void *opaque)
         .argsz = sizeof(plane),
         .flags = VFIO_GFX_PLANE_TYPE_REGION
     };
-    struct vfio_region_info *region = NULL;
     pixman_format_code_t format = PIXMAN_x8r8g8b8;
     int ret;
 
@@ -43,10 +42,11 @@ static void vfio_display_region_update(void *opaque)
     }
     format = qemu_drm_format_to_pixman(plane.drm_format);
 
-    if (dpy->region.mmap && dpy->region.index != plane.region_index) {
+    if (dpy->region.buffer.size &&
+        dpy->region.buffer.nr != plane.region_index) {
         /* region changed */
-        munmap(dpy->region.mmap, dpy->region.size);
-        dpy->region.mmap = NULL;
+        vfio_region_exit(&dpy->region.buffer);
+        memset(&dpy->region.buffer, 0, sizeof(dpy->region.buffer));
         dpy->region.surface = NULL;
     }
 
@@ -58,35 +58,31 @@ static void vfio_display_region_update(void *opaque)
         dpy->region.surface = NULL;
     }
 
-    if (dpy->region.mmap == NULL) {
+    if (!dpy->region.buffer.size) {
         /* mmap region */
-        ret = vfio_get_region_info(&vdev->vbasedev, plane.region_index,
-                                   &region);
+        ret = vfio_region_setup(OBJECT(vdev), &vdev->vbasedev,
+                                &dpy->region.buffer,
+                                plane.region_index,
+                                "display");
         if (ret != 0) {
-            fprintf(stderr, "%s: vfio_get_region_info(%d): %s\n",
+            fprintf(stderr, "%s: vfio_region_setup(%d): %s\n",
                     __func__, plane.region_index, strerror(-ret));
-            return;
+            goto err1;
         }
-        dpy->region.size = region->size;
-        dpy->region.mmap = mmap(NULL, region->size,
-                                 PROT_READ, MAP_SHARED,
-                                 vdev->vbasedev.fd,
-                                 region->offset);
-        if (dpy->region.mmap == MAP_FAILED) {
-            fprintf(stderr, "%s: mmap region %d: %s\n", __func__,
-                    plane.region_index, strerror(errno));
-            dpy->region.mmap = NULL;
-            g_free(region);
-            return;
+        ret = vfio_region_mmap(&dpy->region.buffer);
+        if (ret != 0) {
+            fprintf(stderr, "%s: vfio_region_mmap(%d): %s\n", __func__,
+                    plane.region_index, strerror(-ret));
+            goto err2;
         }
-        g_free(region);
+        assert(dpy->region.buffer.mmaps[0].mmap != NULL);
     }
 
     if (dpy->region.surface == NULL) {
         /* create surface */
         dpy->region.surface = qemu_create_displaysurface_from
             (plane.width, plane.height, format,
-             plane.stride, dpy->region.mmap);
+             plane.stride, dpy->region.buffer.mmaps[0].mmap);
         dpy_gfx_replace_surface(dpy->con, dpy->region.surface);
     }
 
@@ -94,7 +90,12 @@ static void vfio_display_region_update(void *opaque)
     dpy_gfx_update(dpy->con, 0, 0,
                    surface_width(dpy->region.surface),
                    surface_height(dpy->region.surface));
+    return;
 
+err2:
+    vfio_region_exit(&dpy->region.buffer);
+err1:
+    memset(&dpy->region.buffer, 0, sizeof(dpy->region.buffer));
 }
 
 static const GraphicHwOps vfio_display_region_ops = {

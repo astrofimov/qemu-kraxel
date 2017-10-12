@@ -145,9 +145,7 @@ typedef struct VFIOGroup {
 typedef struct VFIODisplay {
     QemuConsole *con;
     struct {
-        uint32_t index;
-        uint32_t size;
-        void *mmap;
+        VFIORegion buffer;
         DisplaySurface *surface;
     } region;
 } VFIODisplay;
