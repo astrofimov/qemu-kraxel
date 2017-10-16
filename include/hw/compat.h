@@ -10,6 +10,10 @@
         .driver   = "virtio-tablet-device",\
         .property = "wheel-axis",\
         .value    = "false",\
+    },{\
+        .driver   = "hda-audio",\
+        .property = "use-timer",\
+        .value    = "false",\
     },
 
 #define HW_COMPAT_2_9 \

@@ -185,6 +185,7 @@ struct HDAAudioState {
     /* properties */
     uint32_t debug;
     bool     mixer;
+    bool     use_timer;
 };
 
 static inline int64_t hda_bytes_per_second(HDAAudioStream *st)
@@ -696,6 +697,26 @@ static void hda_audio_reset(DeviceState *dev)
     }
 }
 
+static bool vmstate_hda_audio_stream_buf_needed(void *opaque)
+{
+    HDAAudioStream *st = opaque;
+    return st->state->use_timer;
+}
+
+static const VMStateDescription vmstate_hda_audio_stream_buf = {
+    .name = "hda-audio-stream/buffer",
+    .version_id = 1,
+    .needed = vmstate_hda_audio_stream_buf_needed,
+    .fields = (VMStateField[]) {
+        VMSTATE_BUFFER(buf, HDAAudioStream),
+        VMSTATE_INT64(rpos, HDAAudioStream),
+        VMSTATE_INT64(wpos, HDAAudioStream),
+        VMSTATE_TIMER_PTR(buft, HDAAudioStream),
+        VMSTATE_INT64(buft_start, HDAAudioStream),
+        VMSTATE_END_OF_LIST()
+    }
+};
+
 static const VMStateDescription vmstate_hda_audio_stream = {
     .name = "hda-audio-stream",
     .version_id = 1,
@@ -710,6 +731,10 @@ static const VMStateDescription vmstate_hda_audio_stream = {
         VMSTATE_UINT32(compat_bpos, HDAAudioStream),
         VMSTATE_BUFFER(compat_buf, HDAAudioStream),
         VMSTATE_END_OF_LIST()
+    },
+    .subsections = (const VMStateDescription * []) {
+        &vmstate_hda_audio_stream_buf,
+        NULL
     }
 };
 
@@ -730,6 +755,7 @@ static const VMStateDescription vmstate_hda_audio = {
 static Property hda_audio_properties[] = {
     DEFINE_PROP_UINT32("debug", HDAAudioState, debug,   0),
     DEFINE_PROP_BOOL("mixer", HDAAudioState, mixer,  true),
+    DEFINE_PROP_BOOL("use-timer", HDAAudioState, use_timer,  true),
     DEFINE_PROP_END_OF_LIST(),
 };
 
