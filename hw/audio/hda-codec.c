@@ -24,6 +24,7 @@
 #include "intel-hda.h"
 #include "intel-hda-defs.h"
 #include "audio/audio.h"
+#include "trace.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -356,8 +357,7 @@ static void hda_audio_set_running(HDAAudioStream *st, bool running)
         return;
     }
     st->running = running;
-    dprint(st->state, 1, "%s: %s (stream %d)\n", st->node->name,
-           st->running ? "on" : "off", st->stream);
+    trace_hda_audio_running(st->node->name, st->stream, st->running);
     if (running) {
         int64_t now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
         st->rpos = 0;
@@ -406,9 +406,8 @@ static void hda_audio_setup(HDAAudioStream *st)
         return;
     }
 
-    dprint(st->state, 1, "%s: format: %d x %s @ %d Hz\n",
-           st->node->name, st->as.nchannels,
-           fmt2name[st->as.fmt], st->as.freq);
+    trace_hda_audio_format(st->node->name, st->as.nchannels,
+                           fmt2name[st->as.fmt], st->as.freq);
 
     if (st->output) {
         st->voice.out = AUD_open_out(&st->state->card, st->voice.out,
