@@ -260,7 +260,7 @@ void gd_egl_scanout_flush(DisplayChangeListener *dcl,
 
     window = gtk_widget_get_window(vc->gfx.drawing_area);
     gdk_drawable_get_size(window, &ww, &wh);
-    if (0) {
+    if (!vc->gfx.cursor_fb.texture) {
         egl_fb_setup_default(&vc->gfx.win_fb, ww, wh);
         egl_fb_blit(&vc->gfx.win_fb, &vc->gfx.guest_fb, !vc->gfx.y0_top);
     } else {
