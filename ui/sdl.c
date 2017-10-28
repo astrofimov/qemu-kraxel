@@ -39,6 +39,7 @@
 
 static DisplayChangeListener *dcl;
 static DisplaySurface *surface;
+static DisplayOptions *opts;
 static SDL_Surface *real_screen;
 static SDL_Surface *guest_screen = NULL;
 static int gui_grab; /* if true, all keyboard/mouse events are grabbed */
@@ -811,6 +812,7 @@ static void handle_activation(SDL_Event *ev)
 static void sdl_refresh(DisplayChangeListener *dcl)
 {
     SDL_Event ev1, *ev = &ev1;
+    bool allow_close = true;
     int idle = 1;
 
     if (last_vm_running != runstate_is_running()) {
@@ -835,7 +837,10 @@ static void sdl_refresh(DisplayChangeListener *dcl)
             handle_keyup(ev);
             break;
         case SDL_QUIT:
-            if (!no_quit) {
+            if (opts->has_window_close && !opts->window_close) {
+                allow_close = false;
+            }
+            if (allow_close) {
                 no_shutdown = 0;
                 qemu_system_shutdown_request(SHUTDOWN_CAUSE_HOST_UI);
             }
@@ -934,9 +939,9 @@ static const DisplayChangeListenerOps dcl_ops = {
     .dpy_cursor_define    = sdl_mouse_define,
 };
 
-void sdl_display_early_init(int opengl)
+void sdl_display_early_init(DisplayOptions *opts)
 {
-    if (opengl == 1 /* on */) {
+    if (opts->has_gl && opts->gl) {
         fprintf(stderr,
                 "SDL1 display code has no opengl support.\n"
                 "Please recompile qemu with SDL2, using\n"
@@ -944,7 +949,7 @@ void sdl_display_early_init(int opengl)
     }
 }
 
-void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
+void sdl_display_init(DisplayState *ds, DisplayOptions *o)
 {
     int flags;
     uint8_t data = 0;
@@ -952,6 +957,8 @@ void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
     SDL_SysWMinfo info;
     char *filename;
 
+    assert(o->type == DISPLAY_TYPE_SDL);
+    opts = o;
 #if defined(__APPLE__)
     /* always use generic keymaps */
     if (!keyboard_layout)
@@ -963,10 +970,11 @@ void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
             exit(1);
     }
 
-    if (no_frame)
+    if (opts->u.sdl.has_window_frame && !opts->u.sdl.window_frame) {
         gui_noframe = 1;
+    }
 
-    if (!full_screen) {
+    if (opts->has_full_screen && opts->full_screen) {
         setenv("SDL_VIDEO_ALLOW_SCREENSAVER", "1", 0);
     }
 #ifdef __linux__
@@ -1007,7 +1015,7 @@ void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
         g_free(filename);
     }
 
-    if (full_screen) {
+    if (opts->has_full_screen && opts->full_screen) {
         gui_fullscreen = 1;
         sdl_grab_start();
     }

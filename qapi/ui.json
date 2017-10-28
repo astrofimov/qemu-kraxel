@@ -1003,13 +1003,22 @@
   'data'    : { '*grab-on-hover' : 'bool' } }
 
 ##
+# @DisplaySDL:
+#
+# WIP
+#
+##
+{ 'struct'  : 'DisplaySDL',
+  'data'    : { '*window-frame'  : 'bool' } }
+
+##
 # @DisplayType:
 #
 # WIP
 #
 ##
 { 'enum'    : 'DisplayType',
-  'data'    : [ 'default', 'none', 'gtk' ] }
+  'data'    : [ 'default', 'none', 'gtk', 'sdl' ] }
 
 ##
 # @DisplayOptions:
@@ -1025,4 +1034,5 @@
   'discriminator' : 'type',
   'data'    : { 'default'        : 'DisplayNoOpts',
                 'none'           : 'DisplayNoOpts',
-                'gtk'            : 'DisplayGTK' } }
+                'gtk'            : 'DisplayGTK',
+                'sdl'            : 'DisplaySDL' } }
