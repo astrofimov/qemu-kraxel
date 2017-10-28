@@ -152,7 +152,6 @@ QEMUClockType rtc_clock;
 int vga_interface_type = VGA_NONE;
 static int full_screen = 0;
 static DisplayOptions dpy;
-static int no_frame = 0;
 Chardev *serial_hds[MAX_SERIAL_PORTS];
 Chardev *parallel_hds[MAX_PARALLEL_PORTS];
 Chardev *virtcon_hds[MAX_VIRTIO_CONSOLES];
@@ -2167,10 +2166,8 @@ static LegacyDisplayType select_display(const char *p)
                 opts = nextopt;
                 dpy.u.sdl.has_window_frame = true;
                 if (strstart(opts, "on", &nextopt)) {
-                    no_frame = 0;
                     dpy.u.sdl.window_frame = true;
                 } else if (strstart(opts, "off", &nextopt)) {
-                    no_frame = 1;
                     dpy.u.sdl.window_frame = false;
                 } else {
                     goto invalid_sdl_args;
@@ -4480,10 +4477,6 @@ int main(int argc, char **argv, char **envp)
 #endif
     }
 
-    if ((no_frame || alt_grab || ctrl_grab) && display_type != DT_SDL) {
-        error_report("-no-frame, -alt-grab and -ctrl-grab are only valid "
-                     "for SDL, ignoring option");
-    }
     if (dpy.has_window_close &&
         (display_type != DT_GTK && display_type != DT_SDL)) {
         error_report("-no-quit is only valid for GTK and SDL, "
