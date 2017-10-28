@@ -3800,11 +3800,9 @@ int main(int argc, char **argv, char **envp)
                 dpy.full_screen = true;
                 break;
             case QEMU_OPTION_no_frame:
-                no_frame = 1;
-                /* FIXME: good idea? what if someone tries this with !sdl ui? */
-                dpy.u.sdl.has_window_frame = true;
-                dpy.u.sdl.window_frame = false;
-                break;
+                error_report("-no_frame option is not supported any more, "
+                             "use '-display sdl,frame=off' instead.");
+                exit(1);
             case QEMU_OPTION_alt_grab:
                 alt_grab = 1;
                 break;
