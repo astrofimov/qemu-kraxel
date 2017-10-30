@@ -37,18 +37,34 @@
 
 typedef struct ISASGAState {
     ISADevice parent_obj;
+    bool use_sgabios;
 } ISASGAState;
 
 static void sga_realizefn(DeviceState *dev, Error **errp)
 {
-    rom_add_vga(SGABIOS_FILENAME);
+    ISASGAState *sga = SGA(dev);
+
+    if (sga->use_sgabios) {
+        rom_add_vga(SGABIOS_FILENAME);
+    } else {
+        /* enable seabios serial console support */
+        /* FIXME: Hmm, too late for fw_cfg ... */
+        MachineState *machine = MACHINE(qdev_get_machine());
+        machine->enable_graphics = false;
+    }
 }
+
+static Property sga_properties[] = {
+    DEFINE_PROP_BOOL("use-sgabios", ISASGAState, use_sgabios, false),
+    DEFINE_PROP_END_OF_LIST(),
+};
 
 static void sga_class_initfn(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     set_bit(DEVICE_CATEGORY_DISPLAY, dc->categories);
+    dc->props = sga_properties;
     dc->realize = sga_realizefn;
     dc->desc = "Serial Graphics Adapter";
 }
