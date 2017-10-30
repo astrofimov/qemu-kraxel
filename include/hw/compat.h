@@ -10,6 +10,10 @@
         .driver   = "virtio-tablet-device",\
         .property = "wheel-axis",\
         .value    = "false",\
+    },{\
+        .driver   = "sga",\
+        .property = "use-sgabios",\
+        .value    = "true",\
     },
 
 #define HW_COMPAT_2_9 \
