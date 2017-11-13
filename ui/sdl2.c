@@ -366,8 +366,10 @@ static void handle_keydown(SDL_Event *ev)
                 sdl2_console[win].hidden = !sdl2_console[win].hidden;
                 if (sdl2_console[win].real_window) {
                     if (sdl2_console[win].hidden) {
+                        fprintf(stderr, "%s/%d: HideWindow\n", __func__, win);
                         SDL_HideWindow(sdl2_console[win].real_window);
                     } else {
+                        fprintf(stderr, "%s/%d: ShowWindow\n", __func__, win);
                         SDL_ShowWindow(sdl2_console[win].real_window);
                     }
                 }
@@ -572,14 +574,20 @@ static void handle_windowevent(SDL_Event *ev)
                 qemu_system_shutdown_request(SHUTDOWN_CAUSE_HOST_UI);
             }
         } else {
+            fprintf(stderr, "%s/%d: HideWindow\n",
+                    __func__, scon->idx);
             SDL_HideWindow(scon->real_window);
             scon->hidden = true;
         }
         break;
     case SDL_WINDOWEVENT_SHOWN:
+        fprintf(stderr, "%s/%d: SDL_WINDOWEVENT_SHOWN\n",
+                __func__, scon->idx);
         scon->hidden = false;
         break;
     case SDL_WINDOWEVENT_HIDDEN:
+        fprintf(stderr, "%s/%d: SDL_WINDOWEVENT_HIDDEN\n",
+                __func__, scon->idx);
         scon->hidden = true;
         break;
     }
